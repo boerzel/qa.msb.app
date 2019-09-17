@@ -1,9 +1,12 @@
+import os
+
 from enum import Enum
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+
+APPIUM_COMMAND_EXECUTER = 'http://localhost:4723/wd/hub'
+NW_SDK_DIR = 'C:\\products\\five\\development\\quality\\testautomation\\test\\nwjs-sdk-v0.40.2-win-x64'
+IMPLICIT_WAIT_TIMEOUT = 5
 
 
 class Platform(Enum):
@@ -22,7 +25,7 @@ class WebDriverFactory:
         # chrome_options.add_experimental_option("nwargs", ["arg1", "arg2"])
 
         driver = webdriver.Chrome(
-            executable_path='C:\\products\\five\\development\\quality\\testautomation\\test\\nwjs-sdk-v0.40.2-win-x64\\chromedriver.exe',
+            executable_path=os.path.join(NW_SDK_DIR, 'chromedriver.exe'),
             options=chrome_options)
 
         driver.implicitly_wait(5)
@@ -49,10 +52,9 @@ class WebDriverFactory:
         desired_caps["autoWebview"] = True
 
         driver = webdriver.Remote(
-            command_executor='http://localhost:4723/wd/hub',
+            command_executor=APPIUM_COMMAND_EXECUTER,
             desired_capabilities=desired_caps)
 
-        driver.implicitly_wait(5)
         return driver
 
     # iOS
@@ -76,21 +78,22 @@ class WebDriverFactory:
         # desired_caps["autoWebview"] = True
 
         driver = webdriver.Remote(
-            command_executor='http://localhost:4723/wd/hub',
+            command_executor=APPIUM_COMMAND_EXECUTER,
             desired_capabilities=desired_caps)
 
-        driver.implicitly_wait(5)
         return driver
 
     @classmethod
     def create(cls, platform):
-
+        driver = None
         if platform == Platform.NW:
-            return cls.__create_node_webkit_driver()
+            driver = cls.__create_node_webkit_driver()
         elif platform == Platform.Android:
-            return cls.__create_android_driver()
+            driver = cls.__create_android_driver()
         elif platform == Platform.iOS:
-            return cls.__create_ios_driver()
+            driver = cls.__create_ios_driver()
         else:
             raise Exception('Platform {} not supported'.format(platform))
 
+        driver.implicitly_wait(IMPLICIT_WAIT_TIMEOUT)
+        return driver
